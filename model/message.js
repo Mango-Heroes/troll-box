@@ -3,16 +3,15 @@ const { sequelize, DataTypes } = require("../app/db");
 const Message = sequelize.define(
   "Message",
   {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    userName: {
+    userId: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    message: {
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    text: {
       type: DataTypes.STRING,
       allowNull: false,
     },

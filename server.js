@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const socket = require("socket.io");
+const cors = require('cors');
 
 const utils = require("./app/utils");
 const User = require("./model/user");
@@ -8,7 +9,7 @@ const Message = require("./model/message");
 
 const app = express();
 const sessionMiddleware = session({
-  secret: "cr0ssf1t_is_da_h3at!",
+  secret: process.env.SESSION_SECRET,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 365,
   },
@@ -16,8 +17,9 @@ const sessionMiddleware = session({
   saveUninitialized: false,
 });
 app.use(sessionMiddleware);
+app.use(cors());
 
-User.sync({ force: true })
+User.sync()
   .then(() => {
     console.log("User table");
   })
@@ -25,7 +27,7 @@ User.sync({ force: true })
     console.log(err);
   });
 
-Message.sync({ force: true })
+Message.sync()
   .then(() => {
     console.log("Message table");
   })
@@ -41,14 +43,16 @@ const server = app.listen(PORT, ADDR, () => {
   console.log("Server running");
 });
 
-const io = socket(server);
+const io = socket(server, { cors: { origin: "*", methods: ["GET", "POST"], credentials: true } });
 io.use(function (socket, next) {
   sessionMiddleware(socket.request, socket.request.res, next);
 });
 
 io.on("connection", async (socket) => {
   socket.join("trollbox");
+  console.log("connect");
   socket.on("user_join", async (user) => {
+    console.log(`User joined ${JSON.stringify(user)}`);
     user.sockId = socket.id;
     socket.request.session.user = user;
     await utils.user_online(io, User, user, true);
@@ -57,7 +61,7 @@ io.on("connection", async (socket) => {
 
   socket.on("new_message", async (message) => {
     await Message.create(message);
-    io.to("trollbox").emit("recv_message", message);
+    io.to("trollbox").emit("recv_message", {author: socket.request.session.user, ...message});
   });
 
   socket.on("user_leave", async (user) => {
@@ -65,8 +69,8 @@ io.on("connection", async (socket) => {
     await utils.user_online(io, User, user, false);
   });
 
-  socket.on("disconnect", async () => {
-    const user = socket.request.session.user;
-    await utils.user_online(io, User, user, false);
-  });
+  // socket.on("disconnect", async () => {
+  //   const user = socket.request.session.user;
+  //   await utils.user_online(io, User, user, false);
+  // });
 });

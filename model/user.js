@@ -3,16 +3,22 @@ const { sequelize, DataTypes } = require("../app/db");
 const User = sequelize.define(
   "User",
   {
-    userName: {
+    username: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    sockId : {
+    id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      primaryKey: true,
+      unique: true
+    },
+    sockId: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
     },
-    profileImg: {
+    avatarUrl: {
       type: DataTypes.STRING,
       allowNull: false,
     },
