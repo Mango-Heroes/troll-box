@@ -1,7 +1,10 @@
-const { Sequelize, DataTypes } = require("sequelize");
-const sequelize = new Sequelize("mango", "root", "password", {
+const { Sequelize, DataTypes, fn } = require("sequelize");
+require('dotenv').config();
+
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
   dialect: "mysql",
-  host: "192.168.0.103",
+  host: process.env.DB_HOST,
+  logging: false
 });
 
-module.exports = { sequelize, DataTypes };
+module.exports = { sequelize, DataTypes, fn };

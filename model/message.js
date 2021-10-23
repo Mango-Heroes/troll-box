@@ -1,4 +1,5 @@
-const { sequelize, DataTypes } = require("../app/db");
+const { sequelize, DataTypes, fn } = require("../app/db");
+const TIMESTAMP = require('sequelize-mysql-timestamp')(sequelize);
 
 const Message = sequelize.define(
   "Message",
@@ -15,10 +16,17 @@ const Message = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    timestamp: {
+      type: TIMESTAMP,
+      allowNull: false,
+    }
   },
   {
-    timestamps: true,
-    updatedAt: false,
+    timestamps: false
   }
 );
 

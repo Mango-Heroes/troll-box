@@ -13,19 +13,10 @@ const User = sequelize.define(
       primaryKey: true,
       unique: true
     },
-    sockId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
     avatarUrl: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    active: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-    },
+    }
   },
   {
     timestamps: true,

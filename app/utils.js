@@ -1,19 +1,25 @@
 module.exports = {
-  user_online: async (io, User, user, status) => {
-    user.active = status;
+  user_online: async (io, User, user) => {
     await User.upsert(user);
-    io.to("trollbox").emit(
-      "update_users",
-      await User.findAll({ where: { active: true } })
-    );
   },
 
-  fetch_history: async (io, Message) => {
-    io.to("trollbox").emit(
+  fetch_history: async (io, sockId, User, Message) => {
+    const messages = await Message.findAll({
+      order: [
+        ["timestamp", "DESC"]
+      ], limit: 20
+    });
+
+    let history = [];
+    for await (let message of messages) {
+      const author = await User.findOne({ where: { id: message.userId } });
+      message.dataValues.author = author;
+      history.push(message);
+    }
+
+    io.to(sockId).emit(
       "history",
-      await Message.findAll({ order: [
-          ["createdAt", "DESC"]
-        ], limit: 20 })
+      history.reverse()
     );
   },
 };

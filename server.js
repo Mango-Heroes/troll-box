@@ -7,9 +7,10 @@ const utils = require("./app/utils");
 const User = require("./model/user");
 const Message = require("./model/message");
 
+require('dotenv').config();
 const app = express();
 const sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SECRET_KEY,
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 * 365,
   },
@@ -56,21 +57,18 @@ io.on("connection", async (socket) => {
     user.sockId = socket.id;
     socket.request.session.user = user;
     await utils.user_online(io, User, user, true);
-    await utils.fetch_history(io, Message);
+    await utils.fetch_history(io, socket.id, User, Message);
   });
 
   socket.on("new_message", async (message) => {
+    message.type = "text";
+    message.timestamp = Date.now();
     await Message.create(message);
-    io.to("trollbox").emit("recv_message", {author: socket.request.session.user, ...message});
+    io.to("trollbox").emit("recv_message", {author: await User.findOne({ where: { id: message.userId } }), ...message});
   });
 
-  socket.on("user_leave", async (user) => {
-    socket.disconnect();
-    await utils.user_online(io, User, user, false);
+  socket.on("disconnect", async () => {
+    console.log("disconnect");
+    delete socket;
   });
-
-  // socket.on("disconnect", async () => {
-  //   const user = socket.request.session.user;
-  //   await utils.user_online(io, User, user, false);
-  // });
 });
